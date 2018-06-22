@@ -13,19 +13,19 @@
                      TextBlock.FontSize="20" TextElement.FontStyle="Normal" Cursor="Hand">
                 <Grid Background="GhostWhite">
                     <Label Padding="40" TextElement.FontSize="50" TextElement.FontFamily="Arial" Content="Your repositories:&#xD;&#xA;"/>
-                    <Button Content="Delete" Margin="953,42,0,0" Background="MediumVioletRed" TextElement.FontSize="25" 
+                    <Button Content="Delete" Margin="953,42,0,0" Background="Blue" TextElement.FontSize="25" 
                 TextElement.Foreground="White" Command="{Binding DeleteRepository}" Height="62" VerticalAlignment="Top" HorizontalAlignment="Left" Width="194"/>
                     <ListBox Margin="2,140,0.2,5" 
                             ItemsSource="{Binding Path=Repositories}" 
-                             SelectedItem="{Binding SelectedRepository}" MouseDoubleClick="ListRepositories_MouseDoubleClick"  Name="ListRepositories" >
+                             SelectedItem="{Binding SelectedRepository}" MouseDoubleClick="ListRepositories_MouseDoubleClick" 
+                             Name="ListRepositories" >
                         <ListBox.ItemTemplate >
                             <DataTemplate>
-
                                 <TextBlock  Text="{Binding Path=Name}" />
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <Button Content="Add" Margin="721,42,0,0" Background="MediumVioletRed" TextElement.FontSize="25" 
+                    <Button Content="Add" Margin="721,42,0,0" Background="Blue" TextElement.FontSize="25" 
                         TextElement.Foreground="White" Command="{Binding DeleteRepository}" Height="62" VerticalAlignment="Top" HorizontalAlignment="Left" Width="194"/>
                 </Grid>
             </TabItem>
@@ -44,13 +44,14 @@
                          x:Name="Path"/>
 
                     <TextBox HorizontalAlignment="Left" Height="33" Margin="221,268,0,0" 
-                        TextWrapping="Wrap" Text="{Binding Name}"  VerticalAlignment="Top" Width="374" 
+                        TextWrapping="Wrap" Text="{Binding Name}" IsReadOnly="True" VerticalAlignment="Top" Width="374" 
                          x:Name="Name"/>
                     <Button Content="Browse" HorizontalAlignment="Left" Margin="629,203,0,0" 
-                            VerticalAlignment="Top" Width="123" Height="33" Name="Browse" Command="{Binding BrowseCommand}" />
-                    <Button Content="Clone" Background="AliceBlue" HorizontalAlignment="Left" Margin="221,351,0,0" 
-                        VerticalAlignment="Top" Width="165" Height="50"
-                       Command="{Binding CloneCommand}" x:Name="Browse_Copy"/>
+                            VerticalAlignment="Top" Width="123" Height="33" Name="Browse" 
+                            Command="{Binding BrowseCommand}" Background="Blue" TextElement.Foreground="White"/>
+                    <Button Content="Clone" Background="Blue" HorizontalAlignment="Left" Margin="415,335,0,0" 
+                        VerticalAlignment="Top" Width="179" Height="50"
+                       Command="{Binding CloneCommand}" x:Name="Browse_Copy" TextElement.Foreground="White" TextElement.FontSize="25"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Settings" Width="167" Height="66"
@@ -73,8 +74,9 @@
                     <TextBox HorizontalAlignment="Left" Height="39" Margin="243,205,0,0" 
                              TextWrapping="Wrap" Text="{Binding Path=Password}" VerticalAlignment="Top" 
                              Width="300" Grid.ColumnSpan="2" Name="Password"/>
-                    <Button Content="Add Git Account" HorizontalAlignment="Left" Margin="364,344,0,0"
-                            VerticalAlignment="Top" Width="179" Height="68" Grid.ColumnSpan="2"/>
+                    <Button Content="Add Git Account" HorizontalAlignment="Left" Margin="313.8,290,0,0"
+                            VerticalAlignment="Top" Width="179" Height="68" Background="Blue" 
+                            TextElement.Foreground="White" Grid.Column="1"/>
                 </Grid>
             </TabItem>
         </TabControl>

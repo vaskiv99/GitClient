@@ -7,13 +7,14 @@ using Nito.Mvvm;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Linq;
+using MyGitClient.Helpers;
 
 namespace MyGitClient.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private RepositoriesService _repositoryService;
-        private GitService _gitService;
+        private GitManager _gitService;
         private string _url;
         private string _path;
         private string _name;
@@ -31,7 +32,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _url = value;
-                Name = _gitService.CreateName(_url);
+                Name = CreateNameForRepositoryHelper.CreateName(_url);
                 OnPropertyChanged("URL");
             }
         }
@@ -94,10 +95,10 @@ namespace MyGitClient.ViewModels
                 OnPropertyChanged("SelectedRepository");
             }
         }
-        
+
         public MainWindowViewModel()
         {
-            _gitService = new GitService();
+            _gitService = new GitManager();
             _repositoryService = new RepositoriesService();
             _repositories = new ObservableCollection<Models.Repository>(_repositoryService.GetRepositories());
             BrowseCommand = new RelayCommand(SelectPath);
@@ -123,9 +124,8 @@ namespace MyGitClient.ViewModels
         }
         private async Task CloneAsync()
         {
-            _path = _path + $@"\{_name}";
             var result = await _gitService.CloneAsync(_url, _path, _name).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke((System.Action)delegate
+            App.Current.Dispatcher.Invoke(delegate
             {
                 _repositories.Add(result);
             });
@@ -133,7 +133,7 @@ namespace MyGitClient.ViewModels
         private async Task DeleteAsync()
         {
             await _repositoryService.DeleteRepositoryAsync(_selectedRepository.Id).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke((System.Action)delegate
+            App.Current.Dispatcher.Invoke(delegate
             {
                 _repositories.Remove(_selectedRepository);
             });

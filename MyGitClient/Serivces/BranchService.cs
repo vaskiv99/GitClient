@@ -35,42 +35,35 @@ namespace MyGitClient.Serivces
             });
             return branches;
         }
-
         public async Task<List<Branch>> GetBranchFromRepositoryAsync(Guid repositoryId)
         {
             var repository = await _repositoryService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             return repository.Branches;
         }
-
         public List<Branch> GetBranches(Guid repositoryId)
         {
             var repository = _repositoryService.GetRepository(repositoryId);
             return repository.Branches;
         }
-
         public async Task<Branch> GetBranchFromRepositoryAsync(Guid repositoryId, Guid branchId)
         {
             var repo = await _repositoryService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             var branch = repo.Branches.AsQueryable().FirstOrDefault(b => b.Id == branchId);
             return branch;
         }
-
         public async Task<bool> DeleteBranchFromRepositoryAsync(Guid repositoryId, Guid branchId)
         {
-            var repo = await _repositoryService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             var branch = await GetBranchFromRepositoryAsync(repositoryId, branchId).ConfigureAwait(false);
-            repo.Branches.Remove(branch);
-            var result = await _context.Repositories.ReplaceOneAsync(r => r.Id == repositoryId, repo);
+            var delete = Builders<Repository>.Update.Pull(u => u.Branches, branch);
+            var result = await _context.Repositories.UpdateOneAsync(u => u.Id == repositoryId, delete).ConfigureAwait(false);
             return result.IsAcknowledged;
         }
-
         public async Task AddBranchToRepositoryAsync(Guid repositoryId, Branch branch)
         {
             var repo = await _repositoryService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             repo.Branches.Add(branch);
             await _context.Repositories.ReplaceOneAsync(r => r.Id == repositoryId, repo);
         }
-
         public async Task<Guid> GetBranchIdAsync(Guid repositoryId, string name)
         {
             var branches = await GetBranchFromRepositoryAsync(repositoryId).ConfigureAwait(false);

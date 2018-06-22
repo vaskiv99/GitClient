@@ -1,0 +1,27 @@
+﻿<Window x:Class="MyGitClient.View.MergeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyGitClient.View"
+        mc:Ignorable="d"
+        Title="MergeWindow" Height="220.537" Width="542.073">
+    <Grid>
+        <Button Content="Merge" TextElement.FontSize="20"
+                Margin="0,140,17,0" VerticalAlignment="Top" 
+                Command="{Binding Merge}" Height="34" HorizontalAlignment="Right" Width="129"
+                Background="Blue" TextElement.Foreground="White"/>
+        <Label Content="Current branch:" HorizontalAlignment="Left" TextElement.FontSize="15" 
+               Margin="11,11,0,0" VerticalAlignment="Top" Width="115" Height="30"/>
+        <Label Content="{Binding HeadBranch}" HorizontalAlignment="Left" TextElement.FontSize="15" 
+               Margin="135,11,0,0" VerticalAlignment="Top" Width="115" Height="30"/>
+        <ListBox Margin="0,43,-2,0"
+                 SelectedItem="{Binding SelectedBranch}" ItemsSource="{Binding Branches}" Height="87" VerticalAlignment="Top">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock  Text="{Binding Name}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>

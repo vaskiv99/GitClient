@@ -1,10 +1,8 @@
 ﻿using MyGitClient.DTO;
 using MyGitClient.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MyGitClient.Helpers
 {
@@ -28,7 +26,7 @@ namespace MyGitClient.Helpers
                     temp = new CommitDto();
                 }
             }
-            return list;
+            return list.OrderByDescending(d=>d.Time).ToList();
         }
     }
 }

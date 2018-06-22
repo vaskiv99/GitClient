@@ -29,35 +29,31 @@ namespace MyGitClient.Serivces
             repo.Branches = branches;
             await _context.Repositories.ReplaceOneAsync(r => r.Id == repositoryId, repo);
         }
-
         public async Task<bool> DeleteCommitAsync(Guid repositoryId, Guid branchId, Guid commitId)
         {
             var branches = await _branchService.GetBranchFromRepositoryAsync(repositoryId);
-            var commit =await GetCommitFromBranchAsync(repositoryId, branchId, commitId).ConfigureAwait(false);
+            var commit = await GetCommitFromBranchAsync(repositoryId, branchId, commitId).ConfigureAwait(false);
             branches.FirstOrDefault(b => b.Id == branchId).Commits.Remove(commit);
             var repo = await _repositoriesService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             repo.Branches = branches;
             var result = await _context.Repositories.ReplaceOneAsync(r => r.Id == repositoryId, repo);
             return result.IsAcknowledged;
         }
-
         public async Task<Commit> GetCommitFromBranchAsync(Guid repositoryId, Guid branchId, Guid commitId)
         {
             var branch = await _branchService.GetBranchFromRepositoryAsync(repositoryId, branchId).ConfigureAwait(false);
             var commit = branch.Commits.AsEnumerable().FirstOrDefault(c => c.Id == commitId);
             return commit;
         }
-
         public async Task<IList<Commit>> GetCommitsFromBranchAsync(Guid repositoryId, Guid branchId)
         {
             var branch = await _branchService.GetBranchFromRepositoryAsync(repositoryId, branchId).ConfigureAwait(false);
             return branch.Commits;
         }
-
         public List<Commit> GetCommitsFromRepository(Guid repositoryId)
         {
             var list = new List<Commit>();
-            var repo =  _repositoriesService.GetRepository(repositoryId);
+            var repo = _repositoriesService.GetRepository(repositoryId);
             foreach (var item in repo.Branches)
             {
                 list.AddRange(item.Commits);
