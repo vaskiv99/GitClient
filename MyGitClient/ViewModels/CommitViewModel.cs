@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Linq;
-using MyGitClient.View;
 using MyGitClient.Models;
 using System.Windows.Media;
 
@@ -23,6 +22,7 @@ namespace MyGitClient.ViewModels
         private Brush _colorPush;
         private bool _isPush;
         private Visibility _visibility;
+        private Visibility _mergeVisibility;
         private string _selectedChangeFiles;
         private string _selectedStageFiles;
         private string _nameBranch;
@@ -159,6 +159,15 @@ namespace MyGitClient.ViewModels
                 OnPropertyChanged("BarVisibility");
             }
         }
+        public Visibility MergeBarVisibility
+        {
+            get { return _mergeVisibility; }
+            set
+            {
+                _mergeVisibility = value;
+                OnPropertyChanged("MergeBarVisibility");
+            }
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         public AsyncCommand StageCommand
         {
@@ -285,11 +294,12 @@ namespace MyGitClient.ViewModels
             _changedFiles = new ObservableCollection<string>(_gitManager.GitStatusAsync(_repositoryId).Result);
             _stage = new ObservableCollection<string>();
             _visibility = Visibility.Hidden;
+            _mergeVisibility = Visibility.Hidden;
             Color = Brushes.Blue;
             ColorPush = Brushes.Blue;
             Task.Run(async () =>
             {
-                HeadBranch =await _gitManager.NameHeadBranch(_repositoryId);
+                HeadBranch = await _gitManager.NameHeadBranch(_repositoryId);
             });
         }
 
@@ -343,7 +353,7 @@ namespace MyGitClient.ViewModels
         }
         private async Task CommitAsync()
         {
-            if (Stage.Count !=0 && !string.IsNullOrWhiteSpace(Message))
+            if (Stage.Count != 0 && !string.IsNullOrWhiteSpace(Message))
             {
                 BarVisibility = Visibility.Visible;
                 var commit = await _gitManager.GitCommitAsync(_message, _repositoryId, _stage);
@@ -355,7 +365,7 @@ namespace MyGitClient.ViewModels
                 }
                 App.Current.Dispatcher.Invoke((System.Action)delegate
                 {
-                    Commits.Insert(0,commit);
+                    Commits.Insert(0, commit);
                 });
                 Stage.Clear();
                 Message = null;
@@ -411,7 +421,7 @@ namespace MyGitClient.ViewModels
         }
         private async Task MergeAsync()
         {
-            BarVisibility = Visibility.Visible;
+            MergeBarVisibility = Visibility.Visible;
             var result = await _gitManager.GitMerge(_repositoryId, _selectedBranch.Id).ConfigureAwait(false);
             if (result.Item2)
             {
@@ -422,7 +432,7 @@ namespace MyGitClient.ViewModels
             {
                 MessageBox.Show(result.Item1);
             }
-            BarVisibility = Visibility.Hidden;
+            MergeBarVisibility = Visibility.Hidden;
         }
     }
 }

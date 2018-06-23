@@ -8,7 +8,7 @@
         Title="MergeWindow" Height="220.537" Width="542.073">
     <Grid>
         <Button Content="Merge" TextElement.FontSize="20"
-                Margin="0,140,17,0" VerticalAlignment="Top" 
+                Margin="0,140,5,0" VerticalAlignment="Top" 
                 Command="{Binding Merge}" Height="34" HorizontalAlignment="Right" Width="129"
                 Background="Blue" TextElement.Foreground="White"/>
         <Label Content="Current branch:" HorizontalAlignment="Left" TextElement.FontSize="15" 
@@ -23,5 +23,8 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <ProgressBar HorizontalAlignment="Left" Height="34" Margin="3,140,0,0" VerticalAlignment="Top" 
+                     Width="378" Visibility="{Binding MergeBarVisibility,FallbackValue=Hidden}"
+                     Minimum="0" Maximum="100" Name="pbStatus" IsIndeterminate="True"/>
     </Grid>
 </Window>

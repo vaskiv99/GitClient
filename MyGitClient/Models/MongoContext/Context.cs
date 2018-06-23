@@ -6,9 +6,6 @@ namespace MyGitClient.MongoContext
     {
         private static readonly IMongoDatabase _database;
 
-        public IMongoCollection<Merge> Merges =>
-           _database.GetCollection<Merge>("Merges");
-
         public IMongoCollection<Repository> Repositories =>
            _database.GetCollection<Repository>("Repositories");
 

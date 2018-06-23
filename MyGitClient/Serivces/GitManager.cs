@@ -102,7 +102,7 @@ namespace MyGitClient.Serivces
             });
             return branch;
         }
-        public async Task GitCheckoutAsync(Guid repositoryId,Guid branchId)
+        public async Task GitCheckoutAsync(Guid repositoryId, Guid branchId)
         {
             await Task.Run(async () =>
             {
@@ -129,7 +129,7 @@ namespace MyGitClient.Serivces
             var result = await GitParser.ParseFetchAsync(fetch.Output).ConfigureAwait(false);
             return result;
         }
-        public async Task<Tuple<string,bool>> GitPullAsync(Guid repositoryId)
+        public async Task<Tuple<string, bool>> GitPullAsync(Guid repositoryId)
         {
             var message = "Successful";
             var isSuccess = true;
@@ -143,13 +143,13 @@ namespace MyGitClient.Serivces
             var result = Tuple.Create(message, isSuccess);
             return result;
         }
-        public async Task<Tuple<string,bool>> GitMerge(Guid repositoryId,Guid branchId)
+        public async Task<Tuple<string, bool>> GitMerge(Guid repositoryId, Guid branchId)
         {
             var message = "Successful";
             var isSuccess = true;
             var repository = await _repositoriesService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             var branch = await _branchService.GetBranchFromRepositoryAsync(repositoryId, branchId).ConfigureAwait(false);
-            var merge = await _gitService.MergeAsync(repository.Path,branch.Name).ConfigureAwait(false);
+            var merge = await _gitService.MergeAsync(repository.Path, branch.Name).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(merge.Error) && merge.Error.Contains("Fatal"))
             {
                 message = merge.Error;
@@ -170,6 +170,25 @@ namespace MyGitClient.Serivces
             var repository = await _repositoriesService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             var branchName = await _gitService.GetCurrentBranchAsync(repository.Path).ConfigureAwait(false);
             return branchName.Output;
+        }
+        public async Task<Repository> AddExistingRepositoryAsync(string path)
+        {
+            var branches = await _gitService.GetBranchesAsync(path).ConfigureAwait(false);
+            var parseBranches =await GitParser.ParseBranchAsync(branches.Output).ConfigureAwait(false);
+            var createName = path.Split('\\');
+            var name = createName[createName.Length-1].Trim();
+            var remote = await _gitService.RemoteAsync(path).ConfigureAwait(false);
+            var url = await GitParser.ParseRemoteAsync(remote.Output).ConfigureAwait(false);
+            var repository = new Repository()
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Path = path,
+                Branches = parseBranches,
+                Url = url
+            };
+            await _repositoriesService.AddRepositoryAsync(repository).ConfigureAwait(false);
+            return repository;
         }
     }
 }

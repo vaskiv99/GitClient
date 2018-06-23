@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:local="clr-namespace:MyGitClient"
         mc:Ignorable="d"
         Title="CommitWIndow" Height="675" Width="1200">
     <Grid>
@@ -56,11 +55,16 @@
                 </TransformGroup>
             </materialDesign:PackIcon.RenderTransform>
         </materialDesign:PackIcon>
+        <Label Content="Current branch:" HorizontalAlignment="Left" TextElement.FontSize="15" 
+               Margin="931,51,0,0" VerticalAlignment="Top" Width="115" Height="30"/>
+        <Label Content="{Binding HeadBranch}" TextElement.FontSize="15" 
+               Margin="1050,51,28.6,0" VerticalAlignment="Top" Height="30" Name="HeadBranch" TextElement.Foreground="Red"/>
         <ListBox HorizontalAlignment="Left" Height="328" Margin="0,90,0,0" 
-                 VerticalAlignment="Top" Width="130" ItemsSource="{Binding Branches}" Name="branches" >
+                 VerticalAlignment="Top" Width="130"
+                 ItemsSource="{Binding Branches}" Name="branches" SelectedItem="{Binding SelectedBranch}" MouseDoubleClick="branches_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}" TextElement.FontSize="15" />
+                    <TextBlock Text="{Binding Name}" TextElement.FontSize="13"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

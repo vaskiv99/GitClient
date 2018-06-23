@@ -91,5 +91,20 @@ namespace MyGitClient.Serivces
             });
             return result;
         }
+        public async static Task<string> ParseRemoteAsync(string remote)
+        {
+            var result = string.Empty;
+            await Task.Run(() =>
+            {
+                var regex = new Regex(@"origin\s*(?<value>.+)$", RegexOptions.Multiline);
+                var matches = regex.Matches(remote);
+                foreach (Match item in matches)
+                {
+                    var str = item.Value.Split(' ','\t');
+                    result = str[1].TrimStart();
+                }
+            });
+            return result;
+        }
     }
 }

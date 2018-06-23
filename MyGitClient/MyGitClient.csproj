@@ -192,7 +192,6 @@
   <ItemGroup>
     <Compile Include="Models\Entities\Branch.cs" />
     <Compile Include="Models\Entities\Commit.cs" />
-    <Compile Include="Models\Entities\Merge.cs" />
     <Compile Include="Models\Entities\Repository.cs" />
     <Compile Include="Models\MongoContext\Context.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

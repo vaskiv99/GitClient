@@ -6,9 +6,10 @@ namespace MyGitClient.Serivces
 {
     public class GitService
     {
-        private string _login = "YourLoginGitHub";
-        private string _password = "YourPasswordGitHub";
+        private string _login = "YourGitHubLogin";
+        private string _password = "YourGitHubPassword";
         private static string _pathToGit = @"E:\Git\bin\git.exe";
+
         public async static Task<GitResult> RunGit(string path, string gitCommand)
         {
             var result = new GitResult();
@@ -185,6 +186,16 @@ namespace MyGitClient.Serivces
             await Task.Run(async () =>
             {
                 string gitCommand = $"merge {branchName}";
+                result = await RunGit(path, gitCommand);
+            });
+            return result;
+        }
+        public async Task<GitResult> RemoteAsync(string path)
+        {
+            var result = new GitResult();
+            await Task.Run(async () =>
+            {
+                string gitCommand = $"remote -v";
                 result = await RunGit(path, gitCommand);
             });
             return result;

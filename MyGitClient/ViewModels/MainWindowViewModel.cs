@@ -14,10 +14,11 @@ namespace MyGitClient.ViewModels
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private RepositoriesService _repositoryService;
-        private GitManager _gitService;
+        private GitManager _gitManager;
         private string _url;
         private string _path;
         private string _name;
+        private AsyncCommand _addRepository;
         private AsyncCommand _cloneCommand;
         private RelayCommand _repositoryWindowCommand;
         private AsyncCommand _deleteCommand;
@@ -75,6 +76,13 @@ namespace MyGitClient.ViewModels
                 return _repositoryWindowCommand ?? (_repositoryWindowCommand = new RelayCommand(ChangeWindow));
             }
         }
+        public AsyncCommand AddRepository
+        {
+            get
+            {
+                return _addRepository ?? (_addRepository = new AsyncCommand(AddExistingRepoAsync));
+            }           
+        }
         public RelayCommand BrowseCommand { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
         public ObservableCollection<Models.Repository> Repositories
@@ -98,7 +106,7 @@ namespace MyGitClient.ViewModels
 
         public MainWindowViewModel()
         {
-            _gitService = new GitManager();
+            _gitManager = new GitManager();
             _repositoryService = new RepositoriesService();
             _repositories = new ObservableCollection<Models.Repository>(_repositoryService.GetRepositories());
             BrowseCommand = new RelayCommand(SelectPath);
@@ -124,7 +132,21 @@ namespace MyGitClient.ViewModels
         }
         private async Task CloneAsync()
         {
-            var result = await _gitService.CloneAsync(_url, _path, _name).ConfigureAwait(false);
+            var result = await _gitManager.CloneAsync(_url, _path, _name).ConfigureAwait(false);
+            App.Current.Dispatcher.Invoke(delegate
+            {
+                _repositories.Add(result);
+            });
+        }
+        private async Task AddExistingRepoAsync()
+        {
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.IsFolderPicker = true;
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                Path = dialog.FileName;
+            }
+            var result = await _gitManager.AddExistingRepositoryAsync(_path).ConfigureAwait(false);
             App.Current.Dispatcher.Invoke(delegate
             {
                 _repositories.Add(result);
