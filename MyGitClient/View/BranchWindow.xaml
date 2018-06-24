@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyGitClient.View"
         mc:Ignorable="d"
+        Icon="E:\samples\MyGitClient\MyGitClient\bin\Release\git.png"
         Title="BranchWindow" Height="257.927" Width="652.927">
     <Grid>
         <TabControl Margin="3,5,4.6,0" RenderTransformOrigin="0.5,0.5">

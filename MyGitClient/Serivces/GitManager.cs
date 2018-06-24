@@ -190,5 +190,11 @@ namespace MyGitClient.Serivces
             await _repositoriesService.AddRepositoryAsync(repository).ConfigureAwait(false);
             return repository;
         }
+        public async Task<bool> IsExistPullAsync(Guid repositoryId)
+        {
+            var repository = await _repositoriesService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
+            var result = await _gitService.IsExistPull(repository.Path).ConfigureAwait(false);
+            return result;
+        }
     }
 }

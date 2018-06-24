@@ -13,13 +13,5 @@ namespace MyGitClient
             InitializeComponent();
             DataContext = _mainWindow;
         }
-
-        private void ListRepositories_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            Models.Repository repository = (Models.Repository)ListRepositories.SelectedItem;
-            CommitWindow commit = new CommitWindow(repository.Id);
-            commit.Show();
-            Hide();
-        }
     }
 }
