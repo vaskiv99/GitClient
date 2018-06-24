@@ -6,8 +6,8 @@ namespace MyGitClient.Serivces
 {
     public class GitService
     {
-        private string _login = "YourGitHubLogin";
-        private string _password = "YourGitHubPassword";
+        private string _login = "vaskiv99";
+        private string _password = "18gugomi";
         private static string _pathToGit = @"E:\Git\bin\git.exe";
 
         public async static Task<GitResult> RunGit(string path, string gitCommand)
@@ -87,7 +87,7 @@ namespace MyGitClient.Serivces
             {
                 string conifrm = $"{_login}:{_password}@";
                 url = url.Insert(8, conifrm);
-                string gitCommand = $@"push {url} --all";
+                string gitCommand = $@"push -u {url} --all";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -199,6 +199,23 @@ namespace MyGitClient.Serivces
                 result = await RunGit(path, gitCommand);
             });
             return result;
+        }
+        public async Task<bool> IsExistPull(string path)
+        {
+            var result1 = new GitResult();
+            var result2 = new GitResult();
+            var temp1 = string.Empty;
+            var temp2 = string.Empty;
+            await Task.Run(async () =>
+            {
+                string gitCommand1 = "rev-parse HEAD";
+                string gitCommand2 = "rev-parse @{u}";
+                result1 = await RunGit(path, gitCommand1).ConfigureAwait(false);
+                result2 = await RunGit(path, gitCommand2).ConfigureAwait(false);
+                temp1 = result1.Output.Trim(' ', '\n', '\t');
+                temp2 = result2.Output.Trim(' ', '\n', '\t');
+            });
+            return temp1 == temp2;
         }
     }
 }

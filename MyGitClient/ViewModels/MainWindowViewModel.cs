@@ -8,11 +8,13 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Linq;
 using MyGitClient.Helpers;
+using System;
 
 namespace MyGitClient.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
+        #region Fields
         private RepositoriesService _repositoryService;
         private GitManager _gitManager;
         private string _url;
@@ -20,13 +22,15 @@ namespace MyGitClient.ViewModels
         private string _name;
         private AsyncCommand _addRepository;
         private AsyncCommand _cloneCommand;
-        private RelayCommand _repositoryWindowCommand;
         private AsyncCommand _deleteCommand;
+        private AsyncCommand _commitWindow;
         private Models.Repository _selectedRepository;
         private ObservableCollection<Models.Repository> _repositories;
         private MainWindow _mainWindow =
             Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+        #endregion
 
+        #region Properties
         public string URL
         {
             get { return _url; }
@@ -69,13 +73,6 @@ namespace MyGitClient.ViewModels
                 return _cloneCommand ?? (_cloneCommand = new AsyncCommand(CloneAsync));
             }
         }
-        public RelayCommand RepositoryWindowCommand
-        {
-            get
-            {
-                return _repositoryWindowCommand ?? (_repositoryWindowCommand = new RelayCommand(ChangeWindow));
-            }
-        }
         public AsyncCommand AddRepository
         {
             get
@@ -84,6 +81,13 @@ namespace MyGitClient.ViewModels
             }           
         }
         public RelayCommand BrowseCommand { get; set; }
+        public AsyncCommand GoToCommitWindow
+        {
+            get
+            {
+                return _commitWindow ?? (_commitWindow = new AsyncCommand(ChangeWindow));
+            }
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         public ObservableCollection<Models.Repository> Repositories
         {
@@ -103,7 +107,9 @@ namespace MyGitClient.ViewModels
                 OnPropertyChanged("SelectedRepository");
             }
         }
+        #endregion
 
+        #region Init
         public MainWindowViewModel()
         {
             _gitManager = new GitManager();
@@ -111,12 +117,9 @@ namespace MyGitClient.ViewModels
             _repositories = new ObservableCollection<Models.Repository>(_repositoryService.GetRepositories());
             BrowseCommand = new RelayCommand(SelectPath);
         }
+        #endregion
 
-        private void ChangeWindow(object parametr)
-        {
-            CommitWindow commit = new CommitWindow(_selectedRepository.Id);
-            commit.Show();
-        }
+        #region Methods
         private void OnPropertyChanged([CallerMemberName]string prop = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
@@ -160,5 +163,20 @@ namespace MyGitClient.ViewModels
                 _repositories.Remove(_selectedRepository);
             });
         }
+        private async Task ChangeWindow()
+        {
+            if (_selectedRepository != null)
+            {
+               await Task.Run(() =>
+                {
+                    Application.Current.Dispatcher.Invoke((Action)delegate {
+                        CommitWindow commitWindow = new CommitWindow(_selectedRepository.Id);
+                        _mainWindow.Close();
+                        commitWindow.Show();
+                    });
+                });
+            }
+        }
+        #endregion
     }
 }

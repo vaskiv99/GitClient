@@ -5,6 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:MyGitClient"
+        xmlns:wi="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:cmd="http://www.galasoft.ch/mvvmlight"
+        Icon="E:\samples\MyGitClient\MyGitClient\bin\Release\git.png"
         mc:Ignorable="d"
         Title="Start" Height="675" Width="1200">
     <Grid>
@@ -17,8 +20,13 @@
                 TextElement.Foreground="White" Command="{Binding DeleteRepository}" Height="62" VerticalAlignment="Top" HorizontalAlignment="Left" Width="194"/>
                     <ListBox Margin="2,140,0.2,5" 
                             ItemsSource="{Binding Path=Repositories}" 
-                             SelectedItem="{Binding SelectedRepository}" MouseDoubleClick="ListRepositories_MouseDoubleClick" 
+                             SelectedItem="{Binding SelectedRepository}" 
                              Name="ListRepositories" >
+                        <wi:Interaction.Triggers>
+                            <wi:EventTrigger EventName="MouseDoubleClick">
+                                <cmd:EventToCommand Command="{Binding GoToCommitWindow}" PassEventArgsToCommand="True"/>
+                            </wi:EventTrigger>
+                        </wi:Interaction.Triggers>
                         <ListBox.ItemTemplate >
                             <DataTemplate>
                                 <TextBlock  Text="{Binding Path=Name}" />

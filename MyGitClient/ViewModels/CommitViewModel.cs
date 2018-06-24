@@ -11,11 +11,13 @@ using System.Threading.Tasks;
 using System.Linq;
 using MyGitClient.Models;
 using System.Windows.Media;
+using MyGitClient.View;
 
 namespace MyGitClient.ViewModels
 {
     public class CommitViewModel : INotifyPropertyChanged
     {
+        #region Fields
         private string _message;
         private string _headBranch;
         private Brush _color;
@@ -44,13 +46,19 @@ namespace MyGitClient.ViewModels
         private AsyncCommand _createBranch;
         private AsyncCommand _deleteBranch;
         private AsyncCommand _merge;
+        private AsyncCommand _checkout;
+        private AsyncCommand _back;
+        private AsyncCommand _branchWindow;
+        private AsyncCommand _mergeWindow;
         private ObservableCollection<Branch> _branches;
         private ObservableCollection<CommitDto> _commits;
         private ObservableCollection<string> _changedFiles;
         private ObservableCollection<string> _stage;
         private CommitWindow _commitWindow =
             Application.Current.Windows.OfType<CommitWindow>().FirstOrDefault();
+        #endregion
 
+        #region Properties
         public bool IsPush
         {
             get { return _isPush; }
@@ -246,6 +254,34 @@ namespace MyGitClient.ViewModels
                 return _merge ?? (_merge = new AsyncCommand(MergeAsync));
             }
         }
+        public AsyncCommand Checkout
+        {
+            get
+            {
+                return _checkout ?? (_checkout = new AsyncCommand(CheckoutAsync));
+            }
+        }
+        public AsyncCommand Back
+        {
+            get
+            {
+                return _back ?? (_back = new AsyncCommand(BackToMainAsync));
+            }
+        }
+        public AsyncCommand BranchWindow
+        {
+            get
+            {
+                return _branchWindow ?? (_branchWindow = new AsyncCommand(ShowBranchWindowAsync));
+            }
+        }
+        public AsyncCommand MergeWindow
+        {
+            get
+            {
+                return _mergeWindow ?? (_mergeWindow = new AsyncCommand(ShowMergeWindowAsync));
+            }
+        }
         public ObservableCollection<Branch> Branches
         {
             get { return _branches; }
@@ -282,7 +318,9 @@ namespace MyGitClient.ViewModels
                 OnPropertyChanged("Stage");
             }
         }
+        #endregion
 
+        #region Init
         public CommitViewModel(Guid repositoryId)
         {
             _repositoryId = repositoryId;
@@ -301,55 +339,75 @@ namespace MyGitClient.ViewModels
             {
                 HeadBranch = await _gitManager.NameHeadBranch(_repositoryId);
             });
+            Task.Run(async () =>
+            {
+                var result = await _gitManager.IsExistPullAsync(_repositoryId).ConfigureAwait(false);
+                if (!result)
+                    Color = Brushes.Red;
+            });
         }
+        #endregion
 
+        #region Methods
         private void OnPropertyChanged([CallerMemberName]string prop = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
         private async Task StageSelectedAsync()
         {
-            await Task.Run(() =>
+            if (_selectedChangeFiles != null)
             {
-                App.Current.Dispatcher.Invoke(delegate
+                await Task.Run(() =>
                 {
-                    _stage.Add(_selectedChangeFiles);
-                    _changedFiles.Remove(_selectedChangeFiles);
+                    App.Current.Dispatcher.Invoke(delegate
+                    {
+                        _stage.Add(_selectedChangeFiles);
+                        _changedFiles.Remove(_selectedChangeFiles);
+                    });
                 });
-            });
+            }
         }
         private async Task StageAllAsync()
         {
-            await Task.Run(() =>
+            if (_changedFiles.Count != 0)
             {
-                App.Current.Dispatcher.Invoke(delegate
+                await Task.Run(() =>
                 {
-                    _stage.AddRange(_changedFiles);
-                    _changedFiles.Clear();
+                    App.Current.Dispatcher.Invoke(delegate
+                    {
+                        _stage.AddRange(_changedFiles);
+                        _changedFiles.Clear();
+                    });
                 });
-            });
+            }
         }
         private async Task UnStageAllAsync()
         {
-            await Task.Run(() =>
+            if (_stage.Count != 0)
             {
-                App.Current.Dispatcher.Invoke((System.Action)delegate
+                await Task.Run(() =>
                 {
-                    _changedFiles.AddRange(_stage);
-                    _stage.Clear();
+                    App.Current.Dispatcher.Invoke((System.Action)delegate
+                    {
+                        _changedFiles.AddRange(_stage);
+                        _stage.Clear();
+                    });
                 });
-            });
+            }
         }
         private async Task UnStageSelectedAsync()
         {
-            await Task.Run(() =>
+            if (_selectedStageFiles != null)
             {
-                App.Current.Dispatcher.Invoke((System.Action)delegate
+                await Task.Run(() =>
                 {
-                    _changedFiles.Add(_selectedStageFiles);
-                    _stage.Remove(_selectedStageFiles);
+                    App.Current.Dispatcher.Invoke((System.Action)delegate
+                    {
+                        _changedFiles.Add(_selectedStageFiles);
+                        _stage.Remove(_selectedStageFiles);
+                    });
                 });
-            });
+            }
         }
         private async Task CommitAsync()
         {
@@ -434,5 +492,54 @@ namespace MyGitClient.ViewModels
             }
             MergeBarVisibility = Visibility.Hidden;
         }
+        private async Task CheckoutAsync()
+        {
+            if (_selectedBranch != null)
+            {
+                await _gitManager.GitCheckoutAsync(_repositoryId, _selectedBranch.Id).ConfigureAwait(false);
+                HeadBranch = _selectedBranch.Name;
+                var result = await _gitManager.IsExistPullAsync(_repositoryId).ConfigureAwait(false);
+                if (!result)
+                {
+                    Color = Brushes.Red;
+                }
+                else
+                {
+                    Color = Brushes.Blue;
+                }
+            }
+        }
+        private async Task BackToMainAsync()
+        {
+            await Task.Run(() =>
+            {
+                Application.Current.Dispatcher.Invoke((Action)delegate {
+                    MainWindow mainWindow = new MainWindow();
+                    _commitWindow.Close();
+                    mainWindow.Show();
+                });
+            });
+        }
+        private async Task ShowBranchWindowAsync()
+        {
+            await Task.Run(() =>
+            {
+                Application.Current.Dispatcher.Invoke((Action)delegate {
+                    BranchWindow branchWindow = new BranchWindow(_repositoryId);
+                    branchWindow.ShowDialog();
+                });
+            });
+        }
+        private async Task ShowMergeWindowAsync()
+        {
+            await Task.Run(() =>
+            {
+                Application.Current.Dispatcher.Invoke((Action)delegate {
+                    MergeWindow mergeWindow = new MergeWindow(_repositoryId);
+                    mergeWindow.ShowDialog();
+                });
+            });
+        }
+        #endregion
     }
 }

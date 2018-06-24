@@ -4,13 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:wi="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:cmd="http://www.galasoft.ch/mvvmlight"
         mc:Ignorable="d"
+        Icon="E:\samples\MyGitClient\MyGitClient\bin\Release\git.png"
         Title="CommitWIndow" Height="675" Width="1200">
     <Grid>
         <Button Cursor="Hand" Background="White" TextElement.Foreground="White"
                 HorizontalAlignment="Left" TextElement.FontSize="15"
             Margin="7,19,0,0" VerticalAlignment="Top" Width="93" Height="34" 
-            Command="{Binding Back}" Click="Button_Click" RenderTransformOrigin="0.014,0.237"/>
+            Command="{Binding Back}"  RenderTransformOrigin="0.014,0.237"/>
         <materialDesign:PackIcon Kind="KeyboardBackspace" Height="47" Width="88" Margin="8,12,0,0" 
                                  Cursor="Hand" BorderBrush="Black" Foreground="Blue"/>
         <Button Cursor="Hand" Background="White" TextElement.Foreground="White"
@@ -24,7 +27,8 @@
         <Button Cursor="Hand" Background="White" TextElement.Foreground="White"
                 HorizontalAlignment="Left" TextElement.FontSize="15"
             Margin="400,0,0,0" VerticalAlignment="Top" Width="91" Height="64" 
-            Click="ShowBranchWindow" RenderTransformOrigin="0.014,0.237"/>
+                Command="{Binding BranchWindow}"
+             RenderTransformOrigin="0.014,0.237"/>
         <Button Cursor="Hand" Background="White" TextElement.Foreground="White"
                 HorizontalAlignment="Left" TextElement.FontSize="15"
             Margin="504,0,0,0" VerticalAlignment="Top" Width="91" Height="64" 
@@ -33,7 +37,7 @@
         <Button Cursor="Hand" Background="White" TextElement.Foreground="White"
                 HorizontalAlignment="Left" TextElement.FontSize="15"
             Margin="608,0,0,0" VerticalAlignment="Top" Width="91" Height="64" 
-            Click="ShowMergeWindow" RenderTransformOrigin="0.014,0.237"/>
+            Command="{Binding MergeWindow}" RenderTransformOrigin="0.014,0.237"/>
         <materialDesign:PackIcon Kind="ArrowDownBold" Height="64" Width="91" Margin="192,0,0,0" 
                                  Cursor="Hand" BorderBrush="Black"  Foreground="{Binding Color}"  Name="Pull"/>
         <materialDesign:PackIcon Kind="ArrowUpBold" Height="64" Width="91" Margin="296,0,0,0" 
@@ -61,7 +65,14 @@
                Margin="1050,51,28.6,0" VerticalAlignment="Top" Height="30" Name="HeadBranch" TextElement.Foreground="Red"/>
         <ListBox HorizontalAlignment="Left" Height="328" Margin="0,90,0,0" 
                  VerticalAlignment="Top" Width="130"
-                 ItemsSource="{Binding Branches}" Name="branches" SelectedItem="{Binding SelectedBranch}" MouseDoubleClick="branches_MouseDoubleClick">
+                 ItemsSource="{Binding Branches}" Name="branches"
+                 SelectedItem="{Binding SelectedBranch}">
+            <wi:Interaction.Triggers>
+                <wi:EventTrigger EventName="MouseDoubleClick">
+                    <cmd:EventToCommand Command="{Binding Checkout}"
+               PassEventArgsToCommand="True" />
+                </wi:EventTrigger>
+            </wi:Interaction.Triggers>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}" TextElement.FontSize="13"/>

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MyGitClient.View"
         mc:Ignorable="d"
+        Icon="E:\samples\MyGitClient\MyGitClient\bin\Release\git.png"
         Title="MergeWindow" Height="220.537" Width="542.073">
     <Grid>
         <Button Content="Merge" TextElement.FontSize="20"
