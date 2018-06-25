@@ -6,10 +6,13 @@ namespace MyGitClient.Serivces
 {
     public class GitService
     {
-        private string _login = "Login";
-        private string _password = "Password";
+        #region Fields
+        private string _login = "login";
+        private string _password = "password";
         private static string _pathToGit = @"E:\Git\bin\git.exe";
+        #endregion
 
+        #region Methods
         public async static Task<GitResult> RunGit(string path, string gitCommand)
         {
             var result = new GitResult();
@@ -217,6 +220,7 @@ namespace MyGitClient.Serivces
             });
             return temp1 == temp2;
         }
+        #endregion
     }
 }
 

@@ -8,11 +8,14 @@ namespace MyGitClient.Serivces
 {
     public class GitManager
     {
+        #region Fields
         private RepositoriesService _repositoriesService;
         private BranchService _branchService;
         private CommitService _commitService;
         private GitService _gitService;
+        #endregion
 
+        #region Init
         public GitManager()
         {
             _repositoriesService = new RepositoriesService();
@@ -20,7 +23,9 @@ namespace MyGitClient.Serivces
             _commitService = new CommitService();
             _gitService = new GitService();
         }
+        #endregion
 
+        #region  Methods
         public async Task<Repository> CloneAsync(string url, string path, string name)
         {
             Repository repository = new Repository();
@@ -196,5 +201,6 @@ namespace MyGitClient.Serivces
             var result = await _gitService.IsExistPull(repository.Path).ConfigureAwait(false);
             return result;
         }
+        #endregion
     }
 }

@@ -10,17 +10,23 @@ namespace MyGitClient.Serivces
 {
     class CommitService
     {
+
+        #region Fields
         private RepositoriesService _repositoriesService;
         private BranchService _branchService;
         private MongoDbContext _context;
+        #endregion
 
+        #region Init
         public CommitService()
         {
             _repositoriesService = new RepositoriesService();
             _branchService = new BranchService();
             _context = new MongoDbContext();
         }
+        #endregion
 
+        #region Methods
         public async Task AddCommitAsync(Guid repositoryId, Guid branchId, Models.Commit commit)
         {
             var branches = await _branchService.GetBranchFromRepositoryAsync(repositoryId);
@@ -60,5 +66,6 @@ namespace MyGitClient.Serivces
             }
             return list;
         }
+        #endregion
     }
 }

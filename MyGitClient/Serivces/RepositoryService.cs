@@ -11,13 +11,18 @@ namespace MyGitClient.Serivces
 {
     public class RepositoriesService
     {
+        #region Fields
         private MongoDbContext _context;
+        #endregion
 
+        #region Init
         public RepositoriesService()
         {
             _context = new MongoDbContext();
         }
+        #endregion
 
+        #region Methods
         public async Task AddRepositoryAsync(Repository repository)
         {
             await _context.Repositories.InsertOneAsync(repository);
@@ -46,6 +51,6 @@ namespace MyGitClient.Serivces
             var repository = _context.Repositories.AsQueryable().FirstOrDefault(r => r.Id == repositoryId);
             return repository;
         }
-
+        #endregion
     }
 }

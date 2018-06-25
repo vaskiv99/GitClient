@@ -11,14 +11,20 @@ namespace MyGitClient.Serivces
 {
     public class BranchService
     {
+        #region Fields
         private RepositoriesService _repositoryService;
         private MongoDbContext _context;
+        #endregion
+
+        #region Init
         public BranchService()
         {
             _repositoryService = new RepositoriesService();
             _context = new MongoDbContext();
         }
+        #endregion
 
+        #region Methods
         public async Task<IEnumerable<Models.Branch>> GetBranchFromRepository(string url)
         {
             var branches = new List<Models.Branch>();
@@ -70,5 +76,6 @@ namespace MyGitClient.Serivces
             var branch = branches.FirstOrDefault(b => b.Name == name);
             return branch.Id;
         }
+        #endregion
     }
 }
