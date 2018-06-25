@@ -9,25 +9,36 @@ using System.Windows;
 using System.Linq;
 using MyGitClient.Helpers;
 using System;
+using MyGitClient.Models;
 
 namespace MyGitClient.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         #region Fields
-        private RepositoriesService _repositoryService;
-        private GitManager _gitManager;
+        private readonly RepositoriesService _repositoryService;
+        private readonly GitManager _gitManager;
         private string _url;
         private string _path;
         private string _name;
+
+        private Models.Repository _selectedRepository;
+        private ObservableCollection<Models.Repository> _repositories;
+        private readonly MainWindow _mainWindow =
+            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+        #endregion
+
+        #region Commands
         private AsyncCommand _addRepository;
         private AsyncCommand _cloneCommand;
         private AsyncCommand _deleteCommand;
         private AsyncCommand _commitWindow;
-        private Models.Repository _selectedRepository;
-        private ObservableCollection<Models.Repository> _repositories;
-        private MainWindow _mainWindow =
-            Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+
+        public AsyncCommand DeleteRepository => _deleteCommand ?? (_deleteCommand = new AsyncCommand(DeleteAsync));
+        public AsyncCommand CloneCommand => _cloneCommand ?? (_cloneCommand = new AsyncCommand(CloneAsync));
+        public AsyncCommand AddRepository => _addRepository ?? (_addRepository = new AsyncCommand(AddExistingRepoAsync));
+        public RelayCommand BrowseCommand { get; set; }
+        public AsyncCommand GoToCommitWindow => _commitWindow ?? (_commitWindow = new AsyncCommand(ChangeWindow));
         #endregion
 
         #region Properties
@@ -38,7 +49,7 @@ namespace MyGitClient.ViewModels
             {
                 _url = value;
                 Name = CreateNameForRepositoryHelper.CreateName(_url);
-                OnPropertyChanged("URL");
+                OnPropertyChanged(nameof(URL));
             }
         }
         public string Path
@@ -47,7 +58,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _path = value;
-                OnPropertyChanged("Path");
+                OnPropertyChanged(nameof(Path));
             }
         }
         public string Name
@@ -56,36 +67,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _name = value;
-                OnPropertyChanged("Name");
-            }
-        }
-        public AsyncCommand DeleteRepository
-        {
-            get
-            {
-                return _deleteCommand ?? (_deleteCommand = new AsyncCommand(DeleteAsync));
-            }
-        }
-        public AsyncCommand CloneCommand
-        {
-            get
-            {
-                return _cloneCommand ?? (_cloneCommand = new AsyncCommand(CloneAsync));
-            }
-        }
-        public AsyncCommand AddRepository
-        {
-            get
-            {
-                return _addRepository ?? (_addRepository = new AsyncCommand(AddExistingRepoAsync));
-            }           
-        }
-        public RelayCommand BrowseCommand { get; set; }
-        public AsyncCommand GoToCommitWindow
-        {
-            get
-            {
-                return _commitWindow ?? (_commitWindow = new AsyncCommand(ChangeWindow));
+                OnPropertyChanged(nameof(Name));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
@@ -95,7 +77,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _repositories = value;
-                OnPropertyChanged("Repositories");
+                OnPropertyChanged(nameof(Repositories));
             }
         }
         public Models.Repository SelectedRepository
@@ -104,7 +86,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _selectedRepository = value;
-                OnPropertyChanged("SelectedRepository");
+                OnPropertyChanged(nameof(SelectedRepository));
             }
         }
         #endregion
@@ -126,8 +108,7 @@ namespace MyGitClient.ViewModels
         }
         private void SelectPath(object parametr)
         {
-            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-            dialog.IsFolderPicker = true;
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true };
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Path = dialog.FileName;
@@ -135,47 +116,88 @@ namespace MyGitClient.ViewModels
         }
         private async Task CloneAsync()
         {
-            var result = await _gitManager.CloneAsync(_url, _path, _name).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke(delegate
+            if (string.IsNullOrWhiteSpace(_url) || string.IsNullOrWhiteSpace(_path))
+                return;
+            var repository = new Repository();
+            var error = string.Empty;
+            try
             {
-                _repositories.Add(result);
+                var result = await _gitManager.CloneAsync(_url, _path, _name).ConfigureAwait(false);
+                repository = result.Item1;
+                error = result.Item2;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            if (repository == null)
+            {
+                MessageBox.Show(error);
+                return;
+            }
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                _repositories.Add(repository);
             });
+            URL = null;
+            Path = null;
+            Name = null;
         }
         private async Task AddExistingRepoAsync()
         {
-            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-            dialog.IsFolderPicker = true;
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true };
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Path = dialog.FileName;
             }
-            var result = await _gitManager.AddExistingRepositoryAsync(_path).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke(delegate
+            var error = string.Empty;
+            var repository = new Repository();
+            try
             {
-                _repositories.Add(result);
+                var result = await _gitManager.AddExistingRepositoryAsync(_path).ConfigureAwait(false);
+                error = result.Item2;
+                repository = result.Item1;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            if (repository == null)
+            {
+                MessageBox.Show(error);
+                return;
+            }
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                _repositories.Add(repository);
             });
+            Path = null;
         }
         private async Task DeleteAsync()
         {
+            if (_selectedRepository == null)
+                return;
             await _repositoryService.DeleteRepositoryAsync(_selectedRepository.Id).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke(delegate
+            Application.Current.Dispatcher.Invoke(delegate
             {
                 _repositories.Remove(_selectedRepository);
             });
         }
         private async Task ChangeWindow()
         {
-            if (_selectedRepository != null)
-            {
-               await Task.Run(() =>
-                {
-                    Application.Current.Dispatcher.Invoke((Action)delegate {
-                        CommitWindow commitWindow = new CommitWindow(_selectedRepository.Id);
-                        _mainWindow.Close();
-                        commitWindow.Show();
-                    });
-                });
-            }
+            if (_selectedRepository == null)
+                return;
+            await Task.Run(() =>
+             {
+                 Application.Current.Dispatcher.Invoke((Action)delegate
+                 {
+                     CommitWindow commitWindow = new CommitWindow(_selectedRepository.Id);
+                     _mainWindow.Close();
+                     commitWindow.Show();
+                 });
+             });
         }
         #endregion
     }

@@ -7,13 +7,13 @@ namespace MyGitClient.Serivces
     public class GitService
     {
         #region Fields
-        private string _login = "login";
-        private string _password = "password";
+        private string _login = "Login";
+        private string _password = "Password";
         private static string _pathToGit = @"E:\Git\bin\git.exe";
         #endregion
 
         #region Methods
-        public async static Task<GitResult> RunGit(string path, string gitCommand)
+        public static async Task<GitResult> RunGit(string path, string gitCommand)
         {
             var result = new GitResult();
             await Task.Run(() =>
@@ -45,9 +45,9 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string conifrm = $"{_login}:{_password}@";
+                var conifrm = $"{_login}:{_password}@";
                 url = url.Insert(8, conifrm);
-                string gitCommand = $@"clone {url}";
+                var gitCommand = $@"clone {url}";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             });
             return result;
@@ -57,8 +57,8 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string file = string.Join(" ", files);
-                string gitCommand = $"add " + file;
+                var file = string.Join(" ", files);
+                var gitCommand = $"add " + file;
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -68,7 +68,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"status";
+                var gitCommand = $"status";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -78,7 +78,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $@"commit -m ""{message}""";
+                var gitCommand = $@"commit -m ""{message}""";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -88,9 +88,9 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string conifrm = $"{_login}:{_password}@";
+                var conifrm = $"{_login}:{_password}@";
                 url = url.Insert(8, conifrm);
-                string gitCommand = $@"push -u {url} --all";
+                var gitCommand = $@"push -u {url}";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -110,7 +110,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = "branch -a";
+                var gitCommand = "branch -a";
                 result = await RunGit(path, gitCommand);
             });
             return result;
@@ -120,7 +120,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = "rev-parse --abbrev-ref HEAD";
+                var gitCommand = "rev-parse --abbrev-ref HEAD";
                 result = await RunGit(path, gitCommand);
                 result.Output = result.Output.Trim('\n');
             }).ConfigureAwait(false);
@@ -131,8 +131,8 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"checkout -b {name}";
-                string gitCommand2 = $"branch {name}";
+                var gitCommand = $"checkout -b {name}";
+                var gitCommand2 = $"branch {name}";
                 if (isCheckout)
                     result = await RunGit(path, gitCommand);
                 result = await RunGit(path, gitCommand2);
@@ -144,7 +144,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"checkout {branchName}";
+                var gitCommand = $"checkout {branchName}";
                 result = await RunGit(path, gitCommand);
             });
             return result;
@@ -154,7 +154,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"branch -D {branchName}";
+                var gitCommand = $"branch -D {branchName}";
                 result = await RunGit(path, gitCommand);
             });
             return result;
@@ -164,9 +164,9 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string conifrm = $"{_login}:{_password}@";
+                var conifrm = $"{_login}:{_password}@";
                 url = url.Insert(8, conifrm);
-                string gitCommand = $@"fetch {url}";
+                var gitCommand = $@"fetch {url}";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -176,9 +176,12 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string conifrm = $"{_login}:{_password}@";
-                url = url.Insert(8, conifrm);
-                string gitCommand = $@"pull {url}";
+                var conifrm = $"{_login}:{_password}@";
+                if (!url.Contains(conifrm))
+                {
+                    url = url.Insert(8, conifrm);
+                }
+                var gitCommand = $@"pull {url}";
                 result = await RunGit(path, gitCommand).ConfigureAwait(false);
             }).ConfigureAwait(false);
             return result;
@@ -188,7 +191,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"merge {branchName}";
+                var gitCommand = $"merge {branchName}";
                 result = await RunGit(path, gitCommand);
             });
             return result;
@@ -198,7 +201,7 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(async () =>
             {
-                string gitCommand = $"remote -v";
+                var gitCommand = $"remote -v";
                 result = await RunGit(path, gitCommand);
             });
             return result;
@@ -209,10 +212,11 @@ namespace MyGitClient.Serivces
             var result2 = new GitResult();
             var temp1 = string.Empty;
             var temp2 = string.Empty;
+            var branch = await GetCurrentBranchAsync(path).ConfigureAwait(false);
             await Task.Run(async () =>
             {
-                string gitCommand1 = "rev-parse HEAD";
-                string gitCommand2 = "rev-parse @{u}";
+                var gitCommand1 = "rev-parse HEAD";
+                var gitCommand2 = $"rev-parse remotes/origin/{branch.Output}";
                 result1 = await RunGit(path, gitCommand1).ConfigureAwait(false);
                 result2 = await RunGit(path, gitCommand2).ConfigureAwait(false);
                 temp1 = result1.Output.Trim(' ', '\n', '\t');

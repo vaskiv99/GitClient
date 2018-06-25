@@ -100,8 +100,22 @@ namespace MyGitClient.Serivces
                 var matches = regex.Matches(remote);
                 foreach (Match item in matches)
                 {
-                    var str = item.Value.Split(' ','\t');
+                    var str = item.Value.Split(' ', '\t');
                     result = str[1].TrimStart();
+                }
+            });
+            return result;
+        }
+        public async static Task<string> ParseError(string error)
+        {
+            var result = string.Empty;
+            await Task.Run(() =>
+            {
+                var regex = new Regex(@"fatal\s*(?<value>.+)$");
+                var matches = regex.Matches(error);
+                foreach (Match match in matches)
+                {
+                    result = match.Value.Trim('\t', '\n');
                 }
             });
             return result;

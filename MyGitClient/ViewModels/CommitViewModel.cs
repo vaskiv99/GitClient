@@ -29,12 +29,21 @@ namespace MyGitClient.ViewModels
         private string _selectedStageFiles;
         private string _nameBranch;
         private bool _isCheckout;
-        private Guid _repositoryId;
+        private readonly Guid _repositoryId;
         private Branch _branch;
         private Branch _selectedBranch;
-        private GitManager _gitManager;
-        private BranchService _branchService;
+        private readonly GitManager _gitManager;
+        private readonly BranchService _branchService;
         private CommitService _commitService;
+        private ObservableCollection<Branch> _branches;
+        private ObservableCollection<CommitDto> _commits;
+        private ObservableCollection<string> _changedFiles;
+        private ObservableCollection<string> _stage;
+        private readonly CommitWindow _commitWindow =
+            Application.Current.Windows.OfType<CommitWindow>().FirstOrDefault();
+        #endregion
+
+        #region Commands
         private AsyncCommand _pull;
         private AsyncCommand _fetch;
         private AsyncCommand _push;
@@ -50,12 +59,22 @@ namespace MyGitClient.ViewModels
         private AsyncCommand _back;
         private AsyncCommand _branchWindow;
         private AsyncCommand _mergeWindow;
-        private ObservableCollection<Branch> _branches;
-        private ObservableCollection<CommitDto> _commits;
-        private ObservableCollection<string> _changedFiles;
-        private ObservableCollection<string> _stage;
-        private CommitWindow _commitWindow =
-            Application.Current.Windows.OfType<CommitWindow>().FirstOrDefault();
+
+        public AsyncCommand StageCommand => _stageCommand ?? (_stageCommand = new AsyncCommand(StageSelectedAsync));
+        public AsyncCommand CommitCommand => _commitCommand ?? (_commitCommand = new AsyncCommand(CommitAsync));
+        public AsyncCommand StageAllCommand => _stageAllCommand ?? (_stageAllCommand = new AsyncCommand(StageAllAsync));
+        public AsyncCommand UnStageAllCommand => _unStageAllCommand ?? (_unStageAllCommand = new AsyncCommand(UnStageAllAsync));
+        public AsyncCommand UnStageCommand => _unStageCommand ?? (_unStageCommand = new AsyncCommand(UnStageSelectedAsync));
+        public AsyncCommand CreateBranch => _createBranch ?? (_createBranch = new AsyncCommand(CreateBranchAsync));
+        public AsyncCommand DeleteBranch => _deleteBranch ?? (_deleteBranch = new AsyncCommand(DeleteBranchAsync));
+        public AsyncCommand Push => _push ?? (_push = new AsyncCommand(PushAsync));
+        public AsyncCommand Fetch => _fetch ?? (_fetch = new AsyncCommand(FetchAsync));
+        public AsyncCommand Pull => _pull ?? (_pull = new AsyncCommand(PullAsync));
+        public AsyncCommand Merge => _merge ?? (_merge = new AsyncCommand(MergeAsync));
+        public AsyncCommand Checkout => _checkout ?? (_checkout = new AsyncCommand(CheckoutAsync));
+        public AsyncCommand Back => _back ?? (_back = new AsyncCommand(BackToMainAsync));
+        public AsyncCommand BranchWindow => _branchWindow ?? (_branchWindow = new AsyncCommand(ShowBranchWindowAsync));
+        public AsyncCommand MergeWindow => _mergeWindow ?? (_mergeWindow = new AsyncCommand(ShowMergeWindowAsync));
         #endregion
 
         #region Properties
@@ -65,7 +84,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _isPush = value;
-                OnPropertyChanged("IsPush");
+                OnPropertyChanged(nameof(IsPush));
             }
         }
         public Brush Color
@@ -74,7 +93,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _color = value;
-                OnPropertyChanged("Color");
+                OnPropertyChanged(nameof(Color));
             }
         }
         public Brush ColorPush
@@ -83,7 +102,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _colorPush = value;
-                OnPropertyChanged("ColorPush");
+                OnPropertyChanged(nameof(ColorPush));
             }
         }
         public bool IsCheckout
@@ -92,7 +111,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _isCheckout = value;
-                OnPropertyChanged("IsCheckout");
+                OnPropertyChanged(nameof(IsCheckout));
             }
         }
         public string Message
@@ -101,7 +120,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _message = value;
-                OnPropertyChanged("Message");
+                OnPropertyChanged(nameof(Message));
             }
         }
         public Branch Branch
@@ -110,7 +129,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _branch = value;
-                OnPropertyChanged("Branch");
+                OnPropertyChanged(nameof(Branch));
             }
         }
         public string SelectedChangeFiles
@@ -119,7 +138,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _selectedChangeFiles = value;
-                OnPropertyChanged("SelectedChangeFiles");
+                OnPropertyChanged(nameof(SelectedChangeFiles));
             }
         }
         public string SelectedStageFiles
@@ -128,7 +147,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _selectedStageFiles = value;
-                OnPropertyChanged("SelectedStageFiles");
+                OnPropertyChanged(nameof(SelectedStageFiles));
             }
         }
         public string NameBranch
@@ -137,7 +156,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _nameBranch = value;
-                OnPropertyChanged("NameBranch");
+                OnPropertyChanged(nameof(NameBranch));
             }
         }
         public string HeadBranch
@@ -146,7 +165,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _headBranch = value;
-                OnPropertyChanged("HeadBranch");
+                OnPropertyChanged(nameof(HeadBranch));
             }
         }
         public Branch SelectedBranch
@@ -155,7 +174,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _selectedBranch = value;
-                OnPropertyChanged("SelectedBranch");
+                OnPropertyChanged(nameof(SelectedBranch));
             }
         }
         public Visibility BarVisibility
@@ -164,7 +183,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _visibility = value;
-                OnPropertyChanged("BarVisibility");
+                OnPropertyChanged(nameof(BarVisibility));
             }
         }
         public Visibility MergeBarVisibility
@@ -173,122 +192,17 @@ namespace MyGitClient.ViewModels
             set
             {
                 _mergeVisibility = value;
-                OnPropertyChanged("MergeBarVisibility");
+                OnPropertyChanged(nameof(MergeBarVisibility));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
-        public AsyncCommand StageCommand
-        {
-            get
-            {
-                return _stageCommand ?? (_stageCommand = new AsyncCommand(StageSelectedAsync));
-            }
-        }
-        public AsyncCommand CommitCommand
-        {
-            get
-            {
-                return _commitCommand ?? (_commitCommand = new AsyncCommand(CommitAsync));
-            }
-        }
-        public AsyncCommand StageAllCommand
-        {
-            get
-            {
-                return _stageAllCommand ?? (_stageAllCommand = new AsyncCommand(StageAllAsync));
-            }
-        }
-        public AsyncCommand UnStageAllCommand
-        {
-            get
-            {
-                return _unStageAllCommand ?? (_unStageAllCommand = new AsyncCommand(UnStageAllAsync));
-            }
-        }
-        public AsyncCommand UnStageCommand
-        {
-            get
-            {
-                return _unStageCommand ?? (_unStageCommand = new AsyncCommand(UnStageSelectedAsync));
-            }
-        }
-        public AsyncCommand CreateBranch
-        {
-            get
-            {
-                return _createBranch ?? (_createBranch = new AsyncCommand(CreateBranchAsync));
-            }
-        }
-        public AsyncCommand DeleteBranch
-        {
-            get
-            {
-                return _deleteBranch ?? (_deleteBranch = new AsyncCommand(DeleteBranchAsync));
-            }
-        }
-        public AsyncCommand Push
-        {
-            get
-            {
-                return _push ?? (_push = new AsyncCommand(PushAsync));
-            }
-        }
-        public AsyncCommand Fetch
-        {
-            get
-            {
-                return _fetch ?? (_fetch = new AsyncCommand(FetchAsync));
-            }
-        }
-        public AsyncCommand Pull
-        {
-            get
-            {
-                return _pull ?? (_pull = new AsyncCommand(PullAsync));
-            }
-        }
-        public AsyncCommand Merge
-        {
-            get
-            {
-                return _merge ?? (_merge = new AsyncCommand(MergeAsync));
-            }
-        }
-        public AsyncCommand Checkout
-        {
-            get
-            {
-                return _checkout ?? (_checkout = new AsyncCommand(CheckoutAsync));
-            }
-        }
-        public AsyncCommand Back
-        {
-            get
-            {
-                return _back ?? (_back = new AsyncCommand(BackToMainAsync));
-            }
-        }
-        public AsyncCommand BranchWindow
-        {
-            get
-            {
-                return _branchWindow ?? (_branchWindow = new AsyncCommand(ShowBranchWindowAsync));
-            }
-        }
-        public AsyncCommand MergeWindow
-        {
-            get
-            {
-                return _mergeWindow ?? (_mergeWindow = new AsyncCommand(ShowMergeWindowAsync));
-            }
-        }
         public ObservableCollection<Branch> Branches
         {
             get { return _branches; }
             set
             {
                 _branches = value;
-                OnPropertyChanged("Branches");
+                OnPropertyChanged(nameof(Branches));
             }
         }
         public ObservableCollection<CommitDto> Commits
@@ -297,7 +211,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _commits = value;
-                OnPropertyChanged("Commits");
+                OnPropertyChanged(nameof(Commits));
             }
         }
         public ObservableCollection<string> Files
@@ -306,7 +220,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _changedFiles = value;
-                OnPropertyChanged("Files");
+                OnPropertyChanged(nameof(Files));
             }
         }
         public ObservableCollection<string> Stage
@@ -315,7 +229,7 @@ namespace MyGitClient.ViewModels
             set
             {
                 _stage = value;
-                OnPropertyChanged("Stage");
+                OnPropertyChanged(nameof(Stage));
             }
         }
         #endregion
@@ -356,84 +270,88 @@ namespace MyGitClient.ViewModels
         private async Task StageSelectedAsync()
         {
             if (_selectedChangeFiles != null)
+                return;
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                Application.Current.Dispatcher.Invoke(delegate
                 {
-                    App.Current.Dispatcher.Invoke(delegate
-                    {
-                        _stage.Add(_selectedChangeFiles);
-                        _changedFiles.Remove(_selectedChangeFiles);
-                    });
+                    _stage.Add(_selectedChangeFiles);
+                    _changedFiles.Remove(_selectedChangeFiles);
                 });
-            }
+            });
+
         }
         private async Task StageAllAsync()
         {
             if (_changedFiles.Count != 0)
+                return;
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                Application.Current.Dispatcher.Invoke(delegate
                 {
-                    App.Current.Dispatcher.Invoke(delegate
-                    {
-                        _stage.AddRange(_changedFiles);
-                        _changedFiles.Clear();
-                    });
+                    _stage.AddRange(_changedFiles);
+                    _changedFiles.Clear();
                 });
-            }
+            });
         }
         private async Task UnStageAllAsync()
         {
             if (_stage.Count != 0)
+                return;
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                Application.Current.Dispatcher.Invoke((System.Action)delegate
                 {
-                    App.Current.Dispatcher.Invoke((System.Action)delegate
-                    {
-                        _changedFiles.AddRange(_stage);
-                        _stage.Clear();
-                    });
+                    _changedFiles.AddRange(_stage);
+                    _stage.Clear();
                 });
-            }
+            });
         }
         private async Task UnStageSelectedAsync()
         {
             if (_selectedStageFiles != null)
+                return;
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                Application.Current.Dispatcher.Invoke((System.Action)delegate
                 {
-                    App.Current.Dispatcher.Invoke((System.Action)delegate
-                    {
-                        _changedFiles.Add(_selectedStageFiles);
-                        _stage.Remove(_selectedStageFiles);
-                    });
+                    _changedFiles.Add(_selectedStageFiles);
+                    _stage.Remove(_selectedStageFiles);
                 });
-            }
+            });
+
         }
         private async Task CommitAsync()
         {
-            if (Stage.Count != 0 && !string.IsNullOrWhiteSpace(Message))
+            if (Stage.Count == 0 || string.IsNullOrWhiteSpace(Message))
+                return;
+            BarVisibility = Visibility.Visible;
+            var commit = await _gitManager.GitCommitAsync(_message, _repositoryId, _stage);
+            if (commit.Item1 == null)
             {
-                BarVisibility = Visibility.Visible;
-                var commit = await _gitManager.GitCommitAsync(_message, _repositoryId, _stage);
-                if (IsPush)
-                    await _gitManager.GitPushAsync(_repositoryId);
-                else
-                {
-                    ColorPush = Brushes.Red;
-                }
-                App.Current.Dispatcher.Invoke((System.Action)delegate
-                {
-                    Commits.Insert(0, commit);
-                });
-                Stage.Clear();
-                Message = null;
+                MessageBox.Show(commit.Item2);
                 BarVisibility = Visibility.Hidden;
+                return;
             }
+            if (IsPush)
+                await _gitManager.GitPushAsync(_repositoryId);
+            else
+            {
+                ColorPush = Brushes.Red;
+            }
+            Application.Current.Dispatcher.Invoke((System.Action)delegate
+            {
+                Commits.Insert(0, commit.Item1);
+            });
+            Stage.Clear();
+            Message = null;
+            BarVisibility = Visibility.Hidden;
+
         }
         private async Task CreateBranchAsync()
         {
             var result = await _gitManager.GitCreateBranchAsync(_repositoryId, _isCheckout, _nameBranch.ToLower()).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke(delegate
+            Application.Current.Dispatcher.Invoke(delegate
             {
                 Branches.Add(result);
             });
@@ -442,7 +360,7 @@ namespace MyGitClient.ViewModels
         private async Task DeleteBranchAsync()
         {
             await _gitManager.GitDeleteBranchAsync(_repositoryId, _selectedBranch.Id).ConfigureAwait(false);
-            App.Current.Dispatcher.Invoke(delegate
+            Application.Current.Dispatcher.Invoke(delegate
             {
                 Branches.Remove(_selectedBranch);
             });
@@ -450,7 +368,13 @@ namespace MyGitClient.ViewModels
         private async Task PushAsync()
         {
             BarVisibility = Visibility.Visible;
-            await _gitManager.GitPushAsync(_repositoryId);
+            var result = await _gitManager.GitPushAsync(_repositoryId);
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                MessageBox.Show(result);
+                BarVisibility = Visibility.Hidden;
+                return;
+            }
             ColorPush = Brushes.Blue;
             BarVisibility = Visibility.Hidden;
         }
@@ -458,7 +382,13 @@ namespace MyGitClient.ViewModels
         {
             BarVisibility = Visibility.Visible;
             var result = await _gitManager.GitFetchAsync(_repositoryId);
-            if (result)
+            if (!string.IsNullOrWhiteSpace(result.Item2))
+            {
+                MessageBox.Show(result.Item2);
+                BarVisibility = Visibility.Hidden;
+                return;
+            }
+            if (result.Item1)
                 Color = Brushes.Red;
             BarVisibility = Visibility.Hidden;
         }
@@ -466,14 +396,11 @@ namespace MyGitClient.ViewModels
         {
             BarVisibility = Visibility.Visible;
             var result = await _gitManager.GitPullAsync(_repositoryId).ConfigureAwait(false);
-            if (result.Item2)
+            if (!string.IsNullOrWhiteSpace(result))
             {
-                MessageBox.Show(result.Item1);
-                Color = Brushes.Blue;
-            }
-            else
-            {
-                MessageBox.Show(result.Item1);
+                MessageBox.Show(result);
+                BarVisibility = Visibility.Hidden;
+                return;
             }
             BarVisibility = Visibility.Hidden;
         }
@@ -481,15 +408,13 @@ namespace MyGitClient.ViewModels
         {
             MergeBarVisibility = Visibility.Visible;
             var result = await _gitManager.GitMerge(_repositoryId, _selectedBranch.Id).ConfigureAwait(false);
-            if (result.Item2)
+            if (!string.IsNullOrWhiteSpace(result))
             {
-                MessageBox.Show(result.Item1);
-                ColorPush = Brushes.Red;
+                MessageBox.Show(result);
+                MergeBarVisibility = Visibility.Hidden;
+                return;
             }
-            else
-            {
-                MessageBox.Show(result.Item1);
-            }
+            ColorPush = Brushes.Red;
             MergeBarVisibility = Visibility.Hidden;
         }
         private async Task CheckoutAsync()
@@ -513,7 +438,8 @@ namespace MyGitClient.ViewModels
         {
             await Task.Run(() =>
             {
-                Application.Current.Dispatcher.Invoke((Action)delegate {
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
                     MainWindow mainWindow = new MainWindow();
                     _commitWindow.Close();
                     mainWindow.Show();
@@ -524,7 +450,8 @@ namespace MyGitClient.ViewModels
         {
             await Task.Run(() =>
             {
-                Application.Current.Dispatcher.Invoke((Action)delegate {
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
                     BranchWindow branchWindow = new BranchWindow(_repositoryId);
                     branchWindow.ShowDialog();
                 });
@@ -534,7 +461,8 @@ namespace MyGitClient.ViewModels
         {
             await Task.Run(() =>
             {
-                Application.Current.Dispatcher.Invoke((Action)delegate {
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
                     MergeWindow mergeWindow = new MergeWindow(_repositoryId);
                     mergeWindow.ShowDialog();
                 });
