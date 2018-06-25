@@ -153,7 +153,7 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
-    <Compile Include="CommitWIndow.xaml.cs">
+    <Compile Include="View\CommitWIndow.xaml.cs">
       <DependentUpon>CommitWIndow.xaml</DependentUpon>
     </Compile>
     <Compile Include="DTO\CommitDto.cs" />
@@ -175,7 +175,7 @@
     <Compile Include="View\MergeWindow.xaml.cs">
       <DependentUpon>MergeWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="CommitWIndow.xaml">
+    <Page Include="View\CommitWIndow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
