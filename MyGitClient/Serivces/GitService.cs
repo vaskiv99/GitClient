@@ -7,8 +7,8 @@ namespace MyGitClient.Serivces
     public class GitService
     {
         #region Fields
-        private string _login = "Login";
-        private string _password = "Password";
+        private string _login = "login";
+        private string _password = "password";
         private static string _pathToGit = @"E:\Git\bin\git.exe";
         #endregion
 
@@ -18,13 +18,15 @@ namespace MyGitClient.Serivces
             var result = new GitResult();
             await Task.Run(() =>
             {
-                ProcessStartInfo procStartInfo = new ProcessStartInfo(_pathToGit, gitCommand);
-                procStartInfo.WorkingDirectory = path;
-                procStartInfo.RedirectStandardOutput = true;
-                procStartInfo.RedirectStandardError = true;
-                procStartInfo.UseShellExecute = false;
-                procStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                procStartInfo.CreateNoWindow = true;
+                ProcessStartInfo procStartInfo = new ProcessStartInfo(_pathToGit, gitCommand)
+                {
+                    WorkingDirectory = path,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true
+                };
                 using (var proc = new Process())
                 {
                     proc.StartInfo = procStartInfo;
@@ -223,6 +225,16 @@ namespace MyGitClient.Serivces
                 temp2 = result2.Output.Trim(' ', '\n', '\t');
             });
             return temp1 == temp2;
+        }
+        public async Task<GitResult> GetAllCommitsForBranch(string path, string nameBranch)
+        {
+            var result = new GitResult();
+            await Task.Run(async () =>
+            {
+                var gitCommand = $@"log {nameBranch}";
+                result = await RunGit(path, gitCommand).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return result;
         }
         #endregion
     }

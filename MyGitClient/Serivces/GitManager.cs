@@ -2,7 +2,9 @@
 using MyGitClient.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using MyGitClient.Helpers;
 
 namespace MyGitClient.Serivces
 {
@@ -47,6 +49,14 @@ namespace MyGitClient.Serivces
                         Url = url,
                         Branches = parseBranches
                     };
+                    foreach (var item in parseBranches)
+                    {
+                        await _gitService.CheckoutAsync(path, item.Name);
+                    }
+
+                    var branchesWirhCommits =
+                        await GetBranchWithCommitsAsync(path, parseBranches).ConfigureAwait(false);
+                    repository.Branches = branchesWirhCommits;
                     await _repositoriesService.AddRepositoryAsync(repository).ConfigureAwait(false);
                     error = null;
                 }
@@ -201,8 +211,9 @@ namespace MyGitClient.Serivces
             if (string.IsNullOrWhiteSpace(error))
             {
                 var parseBranches = await GitParser.ParseBranchAsync(branches.Output).ConfigureAwait(false);
+                var branchesWithCommit = await GetBranchWithCommitsAsync(path, parseBranches).ConfigureAwait(false);
                 var createName = path.Split('\\');
-                var name = createName[createName.Length - 1].Trim();
+                var name = createName.Last().Trim();
                 var remote = await _gitService.RemoteAsync(path).ConfigureAwait(false);
                 var url = await GitParser.ParseRemoteAsync(remote.Output).ConfigureAwait(false);
                 repository = new Repository()
@@ -210,7 +221,7 @@ namespace MyGitClient.Serivces
                     Id = Guid.NewGuid(),
                     Name = name,
                     Path = path,
-                    Branches = parseBranches,
+                    Branches = branchesWithCommit,
                     Url = url
                 };
                 await _repositoriesService.AddRepositoryAsync(repository).ConfigureAwait(false);
@@ -227,6 +238,44 @@ namespace MyGitClient.Serivces
         {
             var repository = await _repositoriesService.GetRepositoryAsync(repositoryId).ConfigureAwait(false);
             var result = await _gitService.IsExistPull(repository.Path).ConfigureAwait(false);
+            return result;
+        }
+        public async Task<List<Branch>> GetBranchWithCommitsAsync(string path, List<Branch> branches)
+        {
+            var result = new List<Branch>();
+            var branch = new Branch();
+            foreach (var item in branches)
+            {
+                branch.Id = item.Id;
+                branch.Name = item.Name;
+                branch.Commits = await GetCommitsFromBranch(path, item.Name).ConfigureAwait(false);
+                var temp = branch;
+                result.Add(temp);
+                branch = new Branch();
+            }
+            return result;
+        }
+        public async Task<List<Commit>> GetCommitsFromBranch(string path, string branchName)
+        {
+            var result = new List<Commit>();
+            var commit = new Commit();
+            var commits = await _gitService.GetAllCommitsForBranch(path, branchName).ConfigureAwait(false);
+            var listGitIds = await GitParser.ParseCommitsAsync(commits.Output, ParametrParse.commit).ConfigureAwait(false);
+            var listAuthors = await GitParser.ParseCommitsAsync(commits.Output, ParametrParse.Author)
+                .ConfigureAwait(false);
+            var listDates = await GitParser.ParseDateFromCommitsAsync(commits.Output).ConfigureAwait(false);
+            var listMessages = await GitParser.ParseMessageFromCommitsAsync(commits.Output).ConfigureAwait(false);
+            for (int i = 0; i < listAuthors.Count; i++)
+            {
+                commit.Id = Guid.NewGuid();
+                commit.GitCommitId = listGitIds[i];
+                commit.UserEmail = listAuthors[i];
+                commit.Time = listDates[i].Ticks;
+                commit.Message = listMessages[i];
+                var temp = commit;
+                result.Add(temp);
+                commit = new Commit();
+            }
             return result;
         }
         #endregion

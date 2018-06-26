@@ -1,9 +1,11 @@
 ﻿using MyGitClient.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MyGitClient.Helpers;
 
 namespace MyGitClient.Serivces
 {
@@ -119,6 +121,65 @@ namespace MyGitClient.Serivces
                 }
             });
             return result;
+        }
+        public async static Task<List<string>> ParseCommitsAsync(string commits,ParametrParse parametrParse)
+        {
+            var list = new List<string>();
+            await Task.Run(() =>
+            {
+                var regex = new Regex($@"{parametrParse}\s*(?<value>.+)$", RegexOptions.Multiline);
+                var matches = regex.Matches(commits);
+                foreach (Match match in matches)
+                {
+                    if (parametrParse == ParametrParse.Author)
+                    {
+                        var str = match.Value.Split(':');
+                        list.Add(str[1].TrimStart().TrimEnd());
+                    }
+                    else
+                    {
+                        var str = match.Value.Split(' ');
+                        list.Add(str[1].Trim());
+                    }
+                }
+            }).ConfigureAwait(false);
+            return list;
+        }
+        public async static Task<List<DateTime>> ParseDateFromCommitsAsync(string commits)
+        {
+            var list = new List<DateTime>();
+            await Task.Run(() =>
+            {
+                var regex = new Regex($@"Date\s*(?<value>.+)$", RegexOptions.Multiline);
+                var matches = regex.Matches(commits);
+                foreach (Match match in matches)
+                {
+                    var date = match.Value.Remove(0, 5).TrimStart().TrimEnd();
+                    DateTime time;
+                    var parseDate = DateTime.TryParseExact(date, "ddd MMM dd HH:mm:ss yyyy zzz", 
+                        new CultureInfo("en-EN"),DateTimeStyles.None,out time);
+                    if(parseDate==false)
+                        parseDate = DateTime.TryParseExact(date, "ddd MMM d HH:mm:ss yyyy zzz",
+                            new CultureInfo("en-EN"), DateTimeStyles.None, out time);
+                    list.Add(time);
+                }
+
+            }).ConfigureAwait(false);
+            return list;
+        }
+        public async static Task<List<string>> ParseMessageFromCommitsAsync(string commits)
+        {
+            var list = new List<string>();
+            await Task.Run(() =>
+            {
+                var regex = new Regex($@"    \s*(?<value>.+)$", RegexOptions.Multiline);
+                var matches = regex.Matches(commits);
+                foreach (Match match in matches)
+                {
+                    list.Add(match.Value.TrimEnd().TrimStart());
+                }
+            }).ConfigureAwait(false);
+            return list;
         }
     }
 }

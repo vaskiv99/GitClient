@@ -153,6 +153,7 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Compile Include="Helpers\ParametrParse.cs" />
     <Compile Include="View\CommitWIndow.xaml.cs">
       <DependentUpon>CommitWIndow.xaml</DependentUpon>
     </Compile>

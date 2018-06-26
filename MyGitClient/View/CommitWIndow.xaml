@@ -86,11 +86,11 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="100" Text="{Binding Branch}" TextElement.FontSize="15" />
+                        <TextBlock Width="100" TextWrapping="Wrap" Text="{Binding Branch}" TextElement.FontSize="15" />
                         <TextBlock TextWrapping="Wrap" Width="175" Text="{Binding Description}" TextElement.FontSize="15"  />
-                        <TextBlock Width="175" Text="{Binding Time}" TextElement.FontSize="15" />
-                        <TextBlock Width="225" Text="{Binding Author}" TextElement.FontSize="15" />
-                        <TextBlock Width="330" Text="{Binding Id}" TextElement.FontSize="15"/>
+                        <TextBlock Width="175" TextWrapping="Wrap" Text="{Binding Time}" TextElement.FontSize="15" />
+                        <TextBlock Width="225" TextWrapping="Wrap" Text="{Binding Author}" TextElement.FontSize="15" />
+                        <TextBlock Width="330" TextWrapping="Wrap" Text="{Binding Id}" TextElement.FontSize="15"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

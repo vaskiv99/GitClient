@@ -140,9 +140,9 @@ namespace MyGitClient.ViewModels
             {
                 _repositories.Add(repository);
             });
-            URL = null;
-            Path = null;
-            Name = null;
+            URL = "";
+            Path = "";
+            Name = "";
         }
         private async Task AddExistingRepoAsync()
         {
@@ -173,7 +173,7 @@ namespace MyGitClient.ViewModels
             {
                 _repositories.Add(repository);
             });
-            Path = null;
+            Path = "";
         }
         private async Task DeleteAsync()
         {

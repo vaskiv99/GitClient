@@ -1,5 +1,4 @@
-﻿using LibGit2Sharp;
-using System;
+﻿using System;
 
 namespace MyGitClient.Models
 {
